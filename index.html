@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3B82F6">
+    <meta name="description" content="Comparateur de fournisseurs d'électricité">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Comparateur de Fournisseurs d'Électricité</title>
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      if (typeof tailwind === 'undefined') {
+        document.write('<script src="assets/js/tailwind.min.js"><\/script>');
+      }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
+          onerror="this.onerror=null;this.href='assets/css/fontawesome.min.css';">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style type="text/tailwindcss">
+        @layer components {
+            .mycontract{ @apply bg-blue-400 text-white hover:bg-blue-800 hover:text-white}
+            .dark .mycontract{ @apply bg-blue-800 text-white hover:bg-blue-400 hover:text-black}
+            tr:hover{ @apply bg-gray-200 text-black}
+            
+            /* Styles pour le loader */
+            .loader-overlay {
+                @apply fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999] hidden;
+            }
+
+            .loader {
+                @apply bg-white rounded-lg p-6 flex flex-col items-center justify-center shadow-lg;
+                max-width: 200px;
+            }
+
+            .loader-circle {
+                @apply w-12 h-12 border-4 border-gray-200 rounded-full relative;
+            }
+
+            .loader-circle::after {
+                content: '';
+                @apply absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent;
+                animation: spin 1s linear infinite;
+            }
+
+            .loader-text {
+                @apply mt-4 text-gray-800 font-medium text-center;
+            }
+
+            /* Styles pour le bouton flottant */
+            .floating-button {
+                @apply fixed bottom-4 right-4 bg-red-500 hover:bg-red-700 text-white rounded-full px-4 py-3 shadow-lg z-50 cursor-pointer transition-all duration-300 ease-in-out;
+                transform: scale(1);
+            }
+
+            .floating-button:hover {
+                transform: scale(1.1);
+            }
+
+            .floating-button:active {
+                transform: scale(0.95);
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      if (typeof jQuery === 'undefined') {
+        document.write('<script src="assets/js/jquery-3.6.0.min.js"><\/script>');
+      }
+    </script>
+    <script src="assets/js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      if (typeof Chart === 'undefined') {
+        document.write('<script src="assets/js/chart.min.js"><\/script>');
+      }
+    </script>
+</head>
+<body class="bg-gray-100 p-8">
+    <!-- Ajout du loader -->
+    <div id="loader" class="loader-overlay">
+        <div class="loader">
+            <div class="loader-circle"></div>
+            <div class="loader-text">Calcul en cours...</div>
+        </div>
+    </div>
+    <div id="clearCacheButton" class="floating-button tooltip-container">
+        <i class="fas fa-broom"></i>
+        <span class="tooltip-text">Nettoyer le cache</span>
+    </div>
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div id="themeswitch" class="flex flex-col items-center space-y-2 rounded-l-xl fixed top-1 right-0 shadow-lg bg-white p-2 z-50 ">
+            <i class="hello fa-solid fa-caret-left"></i>
+            <div class="theme-switch">
+                <input type="radio" id="autoTheme" name="theme" value="auto" class="hidden">
+                <label for="autoTheme" class="theme-label">
+                    <i class="fas fa-circle-half-stroke"></i>
+                </label>
+            </div>
+            <div class="theme-switch">
+                <input type="radio" id="lightTheme" name="theme" value="light" class="hidden">
+                <label for="lightTheme" class="theme-label">
+                    <i class="fas fa-sun"></i>
+                </label>
+            </div>
+            <div class="theme-switch">
+                <input type="radio" id="darkTheme" name="theme" value="dark" class="hidden">
+                <label for="darkTheme" class="theme-label">
+                    <i class="fas fa-moon"></i>
+                </label>
+            </div>
+        </div>
+        <div id="titleWrapper" class="p-2 mb-2 max-w-7xl mx-auto relative">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-center block mx-auto"><i class="fas fa-bolt mr-2"></i> Comparateur de Fournisseurs d'Électricité <i class="fas fa-bolt ml-2"></i></h1>
+            </div>
+            <button id="reinitialiserButton" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full absolute top-0 right-2 hidden">
+                <i class="fas fa-undo mr-4"></i> Réinitialiser
+            </button>
+        </div>  
+        <div id="settingsWrapper" class="max-w-4xl mx-auto">
+            <button id="toggleSettings" class="w-full bg-white rounded-t-lg p-2 flex justify-between items-center">
+                <span class="font-medium"><i class="fas fa-user-gear"></i> Paramètres</span>
+                <i class="fas fa-chevron-up transition-transform duration-300"></i>
+            </button>
+            <div id="settings" class="bg-white rounded-b-lg shadow-lg p-6 transition-all duration-300">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2 relative">
+                    <button id="addCustomFournisseur" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-1 px-2 rounded-full text-xs absolute top-9 -left-9 z-10">
+                        <i class="fas fa-plus mr-4"></i> un fournisseur personnalisé
+                    </button>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Votre fournisseur</label>
+                        <select id="fournisseur" class="select-input w-full p-2 border rounded-md">
+                            <option selected disabled value="">Sélectionnez </option>
+                        </select>
+                        <div id="fournisseurLabel" class="select-label hidden p-2 font-medium cursor-pointer hover:bg-gray-50 rounded-md" data-for="fournisseur"></div>
+                    </div>
+                    <div id="contratContainer" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Votre contrat</label>
+                        <select id="contrat" class="select-input w-full p-2 border rounded-md"></select>
+                        <div id="contratLabel" class="select-label hidden p-2 font-medium cursor-pointer hover:bg-gray-50 rounded-md" data-for="contrat"></div>
+                    </div>
+                    <div id="abonnementContainer" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Puissance (kVA) souscrite</label>
+                        <select id="abonnement" class="select-input w-full p-2 border rounded-md">
+                            <option  selected disabled value="">Sélectionnez</option>
+                            <option value="6">6 kVA</option>
+                            <option value="9">9 kVA</option>
+                            <option value="12">12 kVA</option>
+                            <option value="15">15 kVA</option>
+                            <option value="18">18 kVA</option>
+                            <option value="24">24 kVA</option>
+                            <option value="30">30 kVA</option>
+                            <option value="36">36 kVA</option>
+                        </select>
+                        <div id="abonnementLabel" class="select-label hidden p-2 font-medium cursor-pointer hover:bg-gray-50 rounded-md" data-for="abonnement"></div>
+                    </div>
+                </div>
+                <div id="consommationContainer" class="hidden">
+                    <h2 class="text-xl font-semibold mb-4">Votre consommation annuelle</h2>
+                    <div id="inputsContainer" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Heures Pleines (kWh)
+                            </label>
+                            <input type="number" id="hp" class="w-full p-2 border rounded-md">
+                            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                <div id="hpPourcentage" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <span id="hpPourcentageText" class="text-sm">0%</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Heures Creuses (kWh)
+                            </label>
+                            <input type="number" id="hc" class="w-full p-2 border rounded-md">
+                            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                <div id="hcPourcentage" class="bg-green-600 h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <span id="hcPourcentageText" class="text-sm">0%</span>
+                        </div>
+                    </div>
+                    <div id="tempoContainer" class="hidden">
+                        <h3 class="text-lg font-semibold mb-4">Détail Tempo</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-medium mb-2">Jours Bleus</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <label class="block text-sm text-gray-700">HP Bleu</label>
+                                        <input type="number" id="hpBleu" class="w-full p-2 border rounded-md">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm">HP Bleu <input type="number" class="tempo-percentage w-16 text-right" data-type="hp" data-color="Bleu" value="82" min="0" max="100" step="1">%</span>
+                                            <div class="flex items-center">
+                                                <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                    <div id="hpBleuPourcentage" class="bg-blue-400 h-2.5 rounded-full"></div>
+                                                </div>
+                                                <span id="hpBleuPourcentageText" class="text-sm">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-700">HC Bleu</label>
+                                        <input type="number" id="hcBleu" class="w-full p-2 border rounded-md">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm">HC Bleu <input type="number" class="tempo-percentage w-16 text-right" data-type="hc" data-color="Bleu" value="82" min="0" max="100" step="1">%</span>
+                                            <div class="flex items-center">
+                                                <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                    <div id="hcBleuPourcentage" class="bg-blue-300 h-2.5 rounded-full"></div>
+                                                </div>
+                                                <span id="hcBleuPourcentageText" class="text-sm">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white text-black p-4 rounded-lg">
+                                <h4 class="font-medium mb-2">Jours Blancs</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <label class="block text-sm text-black">HP Blanc</label>
+                                        <input type="number" id="hpBlanc" class="w-full p-2 border rounded-md">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm">HP Blanc <input type="number" class="tempo-percentage w-16 text-right" data-type="hp" data-color="Blanc" value="12" min="0" max="100" step="1">%</span>
+                                            <div class="flex items-center">
+                                                <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                    <div id="hpBlancPourcentage" class="bg-gray-400 h-2.5 rounded-full"></div>
+                                                </div>
+                                                <span id="hpBlancPourcentageText" class="text-sm">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-black">HC Blanc</label>
+                                        <input type="number" id="hcBlanc" class="w-full p-2 border rounded-md">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm">HC Blanc <input type="number" class="tempo-percentage w-16 text-right" data-type="hc" data-color="Blanc" value="12" min="0" max="100" step="1">%</span>
+                                            <div class="flex items-center">
+                                                <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                    <div id="hcBlancPourcentage" class="bg-gray-300 h-2.5 rounded-full"></div>
+                                                </div>
+                                                <span id="hcBlancPourcentageText" class="text-sm">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-red-500 p-4 rounded-lg">
+                                <h4 class="font-medium mb-2">Jours Rouges</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <label class="block text-sm text-gray-700">HP Rouge</label>
+                                        <input type="number" id="hpRouge" class="w-full p-2 border rounded-md">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm">HP Rouge <input type="number" class="tempo-percentage w-16 text-right" data-type="hp" data-color="Rouge" value="6" min="0" max="100" step="1">%</span>
+                                            <div class="flex items-center">
+                                                <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                    <div id="hpRougePourcentage" class="bg-red-400 h-2.5 rounded-full"></div>
+                                                </div>
+                                                <span id="hpRougePourcentageText" class="text-sm">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-700">HC Rouge</label>
+                                        <input type="number" id="hcRouge" class="w-full p-2 border rounded-md">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm">HC Rouge <input type="number" class="tempo-percentage w-16 text-right" data-type="hc" data-color="Rouge" value="6" min="0" max="100" step="1">%</span>
+                                            <div class="flex items-center">
+                                                <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                    <div id="hcRougePourcentage" class="bg-red-300 h-2.5 rounded-full"></div>
+                                                </div>
+                                                <span id="hcRougePourcentageText" class="text-sm">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="buttonsContainer" class="hidden flex items-center place-content-center content-center mb-2">
+                        <button id="calculerButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+                            <i class="fas fa-check mr-4"></i> Valider
+                        </button> 
+                    </div>
+                </div>
+                <div id="customFournisseurModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+                    <div class="bg-white p-6 rounded-lg shadow-xl max-w-2xl mx-auto mt-20">
+                        <h3 class="text-xl font-bold mb-4">Ajouter un fournisseur personnalisé</h3>
+                        <form id="customFournisseurForm">
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nom du fournisseur</label>
+                                    <input type="text" id="customFournisseurName" class="w-full p-2 border rounded-md" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nom du contrat</label>
+                                    <input type="text" id="customContratName" class="w-full p-2 border rounded-md" required>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-2">Prix de l'abonnement par puissance (€/an)</h4>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                        <div>
+                                            <label class="text-sm">6 kVA</label>
+                                            <input type="number" id="customAbo6" class="w-full p-2 border rounded-md" step="0.01" required>
+                                        </div>
+                                        <div>
+                                            <label class="text-sm">9 kVA</label>
+                                            <input type="number" id="customAbo9" class="w-full p-2 border rounded-md" step="0.01" required>
+                                        </div>
+                                        <div>
+                                            <label class="text-sm">12 kVA</label>
+                                            <input type="number" id="customAbo12" class="w-full p-2 border rounded-md" step="0.01" required>
+                                        </div>
+                                        <div>
+                                            <label class="text-sm">15 kVA</label>
+                                            <input type="number" id="customAbo15" class="w-full p-2 border rounded-md" step="0.01" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-2">Prix du kWh (€)</h4>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="text-sm">Heures Pleines</label>
+                                            <input type="number" id="customHP" class="w-full p-2 border rounded-md" step="0.0001" required>
+                                        </div>
+                                        <div>
+                                            <label class="text-sm">Heures Creuses</label>
+                                            <input type="number" id="customHC" class="w-full p-2 border rounded-md" step="0.0001" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <button type="button" id="cancelCustomFournisseur" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                                    Annuler
+                                </button>
+                                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                    Ajouter
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="resultatContainerWrapper" class="hidden bg-white rounded-lg shadow-lg p-0 mb-0">
+            <div id="resultatContainer" class="relative overflow-x-auto block max-h-cust  mb-0">
+                <table id="comparaisonTable" class="w-full">
+                    <!-- Le tableau sera rempli dynamiquement -->
+                </table>
+            </div>
+            <div class="p-2 text-center flex justify-between w-full items-stretch place-items-stretch">
+                <button id="toggleStatsButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+                    <i class="fas fa-chart-bar mr-4"></i> Afficher les stats
+                </button>
+            </div>
+        </div>
+        <div id="analysesContainer" class="mt-8 bg-white rounded-lg shadow-lg p-6 hidden max-w-4xl mx-auto">
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-chart-bar mr-3"></i>Analyses supplémentaires
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
+                <!-- Coût mensuel estimé -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-medium mb-3 flex justify-between items-center">
+                        <span><i class="fas fa-calendar-alt mr-2"></i>Coût mensuel estimé</span>
+                        <button id="coutMensuelSettingsBtn" class="text-gray-500 hover:text-blue-500 transition-colors">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </h3>
+                    <div style="max-height:40vh;">
+                        <canvas id="coutMensuelChart"></canvas>
+                    </div>
+                </div>
+                <!-- Répartition des coûts -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-medium mb-3">
+                        <i class="fas fa-chart-pie mr-2"></i>Répartition des coûts
+                    </h3>
+                    <div style="max-height:40vh;">
+                        <canvas id="repartitionCoutsChart"></canvas>
+                    </div>
+                </div>
+                <!-- Statistiques détaillées -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-medium mb-3">
+                        <i class="fas fa-chart-line mr-2"></i>Statistiques détaillées
+                    </h3>
+                    <div id="statsDetailContainer">
+                        <!-- Le contenu sera généré dynamiquement -->
+                    </div>
+                </div>
+                <!-- Consommation moyenne -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-medium mb-3">Votre consommation moyenne</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div id="moyenneJournaliere" class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium mb-2">Par jour</h4>
+                            <div id="moyenneJourContainer" class="grid grid-cols-1 gap-4">
+                                <!-- Rempli dynamiquement -->
+                            </div>
+                        </div>       
+                        <div id="moyenneHoraire" class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium mb-2">Par heure</h4>
+                            <div id="moyenneHeureContainer" class="grid grid-cols-1 gap-4">
+                                <!-- Rempli dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="fixed top-1 left-2 flex items-center z-10">
+        <button id="disclaimerToggle" class="text-lg text-white hover:text-red-700 mr-2">
+            <i class="fas fa-triangle-exclamation"></i>
+        </button>
+        <p id="disclaimer" class="text-white text-xs hidden">
+            Les informations affichées sont fournies à titre expérimental et indicatif. <br>Nous ne sommes pas responsables des éventuelles erreurs ou mises à jour tardives de tarifs.
+        </p>
+    </div>
+    <div id="coutMensuelSettingsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto mt-20 max-h-[80vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4 flex justify-between items-center">
+                <span>Paramètres du graphique de coût mensuel</span>
+                <button id="closeCoutMensuelSettings" class="text-gray-500 hover:text-red-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </h3>
+            <div class="m-2">
+                <h4 class="font-medium mb-2">Coefficients de saisonnalité</h4>
+                <p class="text-sm text-gray-600 mb-2">Ces coefficients représentent la variation de consommation selon les saisons (valeurs plus élevées en hiver, plus basses en été).</p>
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center space-x-2">
+                        <label for="importCoefficients" class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md cursor-pointer text-sm flex items-center">
+                            <i class="fas fa-file-import mr-2"></i> Importer JSON
+                        </label>
+                        <input type="file" id="importCoefficients" accept=".json" class="hidden">
+                        
+                        <button id="exportCoefficients" class="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded-md cursor-pointer text-sm flex items-center">
+                            <i class="fas fa-file-export mr-2"></i> Exporter JSON
+                        </button>
+                        
+                        <button id="exportCompatible" class="bg-purple-500 hover:bg-purple-700 text-white py-2 px-4 rounded-md cursor-pointer text-sm flex items-center">
+                            <i class="fas fa-exchange-alt mr-2"></i> Format Alternatif
+                        </button>
+                    </div>
+                    <div id="importStatus" class="text-sm ml-4"></div>
+                </div>
+                <div class="text-xs text-gray-500 mb-4">
+                    Format attendu: un fichier JSON contenant les objets "coefficientsSaisonnalite" ou "ratios" avec les valeurs mensuelles.
+                </div>
+                <div class="grid grid-cols-4 md:grid-cols-12 gap-3">
+                    <div class="mb-2">
+                        <label class="block text-sm">Jan.</label>
+                        <input type="number" id="coef-janvier" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Fév.</label>
+                        <input type="number" id="coef-fevrier" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Mars</label>
+                        <input type="number" id="coef-mars" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Avr.</label>
+                        <input type="number" id="coef-avril" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Mai</label>
+                        <input type="number" id="coef-mai" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Juin</label>
+                        <input type="number" id="coef-juin" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Juil.</label>
+                        <input type="number" id="coef-juillet" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Août</label>
+                        <input type="number" id="coef-aout" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Sept.</label>
+                        <input type="number" id="coef-septembre" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Oct.</label>
+                        <input type="number" id="coef-octobre" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Nov.</label>
+                        <input type="number" id="coef-novembre" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Déc.</label>
+                        <input type="number" id="coef-decembre" class="w-full p-2 border rounded-md" step="0.1" min="0.1" max="3">
+                    </div>
+                </div>
+            </div>
+            <div class="mb-6">
+                <h4 class="font-medium mb-2">Répartition des jours rouges Tempo (22 jours)</h4>
+                <p class="text-sm text-gray-600 mb-2">Ces jours sont répartis uniquement de novembre à mars (sauf dimanches). Le total doit être égal à 22.</p>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div class="mb-2">
+                        <label class="block text-sm">Nov.</label>
+                        <input type="number" id="rouge-novembre" class="w-full p-2 border rounded-md" min="0" max="22">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Déc.</label>
+                        <input type="number" id="rouge-decembre" class="w-full p-2 border rounded-md" min="0" max="22">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Jan.</label>
+                        <input type="number" id="rouge-janvier" class="w-full p-2 border rounded-md" min="0" max="22">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Fév.</label>
+                        <input type="number" id="rouge-fevrier" class="w-full p-2 border rounded-md" min="0" max="22">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Mars</label>
+                        <input type="number" id="rouge-mars" class="w-full p-2 border rounded-md" min="0" max="22">
+                    </div>
+                </div>
+                <div class="text-sm mt-1">
+                    Total: <span id="total-jours-rouges">0</span>/22 jours
+                </div>
+            </div>
+            <div class="mb-6">
+                <h4 class="font-medium mb-2">Répartition des jours blancs Tempo (43 jours)</h4>
+                <p class="text-sm text-gray-600 mb-2">Ces jours sont répartis sur toute l'année (sauf dimanches). Le total doit être égal à 43.</p>
+                <div class="grid grid-cols-4 md:grid-cols-12 gap-3">
+                    <div class="mb-2">
+                        <label class="block text-sm">Jan.</label>
+                        <input type="number" id="blanc-janvier" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Fév.</label>
+                        <input type="number" id="blanc-fevrier" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Mars</label>
+                        <input type="number" id="blanc-mars" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Avr.</label>
+                        <input type="number" id="blanc-avril" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Mai</label>
+                        <input type="number" id="blanc-mai" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Juin</label>
+                        <input type="number" id="blanc-juin" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Juil.</label>
+                        <input type="number" id="blanc-juillet" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Août</label>
+                        <input type="number" id="blanc-aout" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Sept.</label>
+                        <input type="number" id="blanc-septembre" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Oct.</label>
+                        <input type="number" id="blanc-octobre" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Nov.</label>
+                        <input type="number" id="blanc-novembre" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm">Déc.</label>
+                        <input type="number" id="blanc-decembre" class="w-full p-2 border rounded-md" min="0" max="43">
+                    </div>
+                </div>
+                <div class="text-sm mt-1">
+                    Total: <span id="total-jours-blancs">0</span>/43 jours
+                </div>
+            </div>
+            <div class="flex justify-between mt-6">
+                <button id="resetCoutMensuelSettings" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Réinitialiser
+                </button>
+                <div>
+                    <button id="cancelCoutMensuelSettings" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2">
+                        Annuler
+                    </button>
+                    <button id="saveCoutMensuelSettings" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Appliquer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

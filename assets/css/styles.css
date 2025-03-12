@@ -1,0 +1,610 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Slab&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Space+Grotesk:wght@300..700&display=swap");
+
+body {
+	font-family: "Roboto Slab", serif;
+	font-optical-sizing: auto;
+}
+/* Styles généraux */
+.max-h-cust {
+    max-height: 80vh;
+}
+
+/* Styles pour le tableau avec scroll */
+.table-wrp {
+    max-height: 500px;
+    overflow-y: auto;
+    display: block;
+}
+
+.table-wrp thead th {
+    position: sticky;
+    top: 0;
+    background-color: rgb(249 250 251);
+    z-index: 1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Dark mode styles */
+.dark body {
+    background-color: rgb(9, 13, 22);
+    color: rgb(229 231 235);
+}
+
+.dark .bg-white {
+    background-color: rgb(31 41 55);
+}
+.dark #tempoContainer .bg-white{
+    background-color:white;
+}
+.dark .bg-gray-50 {
+    background-color: rgb(55 65 81);
+}
+
+.dark .bg-gray-100 {
+    background-color: rgb(44 49 56);
+}
+
+.dark .text-gray-500 {
+    color: rgb(156 163 175);
+}
+
+.dark .text-gray-600 {
+    color: rgb(209 213 219);
+}
+.dark .table-wrp thead th {
+    background-color: rgb(31 41 55);
+}
+.dark .text-gray-700 {
+    color: rgb(229 231 235);
+}
+.dark .bg-blue-50{
+    background-color: rgb(45, 67, 115);
+}
+.dark .bg-green-50{
+    background-color: rgb(20, 95, 28);
+}
+.dark .border {
+    border-color: rgb(75 85 99);
+}
+
+.dark .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 
+                0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+.dark input, 
+.dark select {
+    background-color: rgb(55 65 81);
+    color: rgb(229 231 235);
+    border-color: rgb(75 85 99);
+}
+
+.dark input:focus,
+.dark select:focus {
+    border-color: rgb(96 165 250);
+}
+
+/* Theme switcher styles */
+.theme-switch {
+    position: relative;
+}
+
+.theme-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: rgb(243 244 246);
+    color: rgb(107 114 128);
+}
+
+.theme-label:hover {
+    background-color: rgb(229 231 235);
+    color: rgb(55 65 81);
+}
+
+input[name="theme"]:checked + .theme-label {
+    background-color: rgb(59 130 246);
+    color: white;
+}
+
+/* Dark mode adjustments for theme switcher */
+.dark .theme-label {
+    background-color: rgb(55 65 81);
+    color: rgb(156 163 175);
+}
+
+.dark .theme-label:hover {
+    background-color: rgb(75 85 99);
+    color: rgb(209 213 219);
+}
+
+.dark input[name="theme"]:checked + .theme-label {
+    background-color: rgb(59 130 246);
+    color: white;
+}
+
+/* Ajouter ces styles */
+.select-label {
+    position: relative;
+    padding-right: 2rem; /* Espace pour l'icône */
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.select-label:hover {
+    border-color: rgb(209 213 219);
+}
+
+.dark .select-label:hover {
+    background-color: rgb(55 65 81);
+}
+
+/* Modifier les styles de l'icône d'édition */
+.select-label::after {
+    content: '\f304';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+    width: 20px;
+    text-align: center;
+}
+
+.select-label:hover::after {
+    opacity: 0.5;
+}
+
+/* Style spécifique pour la zone cliquable de l'icône */
+.select-label::after:hover {
+    opacity: 0.8;
+}
+
+/* Ajustement pour le mode sombre */
+.dark .select-label::after {
+    color: rgb(156 163 175);
+}
+
+/* Style pour le bouton de toggle */
+#toggleStatsButton {
+    transition: all 0.3s ease;
+}
+
+.dark #toggleStatsButton:hover {
+    background-color: rgb(29, 78, 216);
+}
+
+/* Ajouter ces styles pour les champs readonly */
+input[readonly] {
+    background-color: rgb(243 244 246);
+    cursor: not-allowed;
+}
+
+.dark input[readonly] {
+    background-color: rgb(31 41 55);
+} 
+
+button#reinitialiserButton,
+button#calculerButton,
+button#addCustomFournisseur,
+button#toggleStatsButton,
+button#exportButton {
+    width: 45px;
+    height: 45px;
+    text-wrap-mode: nowrap;
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+button#addCustomFournisseur{
+    width: 25px;
+    height: 25px;
+}
+button#reinitialiserButton:hover,
+button#calculerButton:hover,
+button#addCustomFournisseur:hover,
+button#toggleStatsButton:hover,
+button#exportButton:hover{width: 160px;transition: width 0.3s ease;}
+button#addCustomFournisseur:hover,
+button#toggleStatsButton:hover,
+button#exportButton:hover{width: 220px;}
+td.conso span,td.detail span {
+    width: 80%;
+    text-align: center;
+    margin: 4px auto;
+}
+
+/* Ajouter ces styles */
+#settingsWrapper {
+    transition: all 0.3s ease;
+}
+
+#settingsWrapper.collapsed {
+    margin-bottom: 0.5rem;
+}
+
+#toggleSettings {
+    cursor: pointer;
+    border-bottom: 1px solid rgb(229 231 235);
+}
+
+#toggleSettings:hover {
+    background-color: rgb(243 244 246);
+}
+
+.dark #toggleSettings {
+    background-color: rgb(31 41 55);
+    border-bottom-color: rgb(75 85 99);
+}
+
+.dark #toggleSettings:hover {
+    background-color: rgb(55 65 81);
+}
+
+.rotate-180 {
+    transform: rotate(180deg);
+}
+#settingsWrapper.collapsed #settings{
+    overflow: hidden;
+}
+#settings {
+    overflow: visible;
+}
+
+#settings.collapsed {
+    padding: 0;
+    border-top: none;
+}
+
+tbody tr.cheapest {
+	background-image: linear-gradient(45deg, hsl(80deg 63% 41% / 80%) 25%, hsl(80deg 57% 39% / 80%) 25%, hsl(80deg 57% 39% / 80%) 50%, hsl(80deg 63% 41% / 80%) 50%, hsl(80deg 63% 41% / 80%) 75%, hsl(80deg 57% 39% / 80%) 75%, hsl(80deg 57% 39% / 80%) 100%);
+	background-size: 56.57px 56.57px;
+    color: white;
+}
+.dark tbody tr.cheapest {
+	background-image: linear-gradient(45deg, hsl(80deg 63% 11% / 80%) 25%, hsl(80deg 57% 9% / 80%) 25%, hsl(80deg 57% 9% / 80%) 50%, hsl(80deg 63% 11% / 80%) 50%, hsl(80deg 63% 11% / 80%) 75%, hsl(80deg 57% 9% / 80%) 75%, hsl(80deg 57% 9% / 80%) 100%);
+	background-size: 56.57px 56.57px;
+    color: white;
+}
+.dark .hover\:bg-gray-200:hover {
+    background-color: rgb(17 17 17);
+}
+.dark *, ::after, ::before{
+    border-color: #000000;
+}
+.dark .hover\:text-black:hover{
+    color: white;
+}
+tbody td.chere {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-content: stretch;
+    justify-content: space-between;
+    align-items: center;
+    min-width: 255px;
+    height: 76px;
+}
+tbody td.chere span.total {
+    font-size: 1.2em;
+    display: block;
+    font-weight: bolder;
+    width: 50%;
+    text-align: right;
+}
+tbody td.chere div.tooltip-container + sup {
+    display: block;
+    line-height: 1.25em;
+    height: 60px;
+    width: 42%;
+    text-align: left;
+    border-left: 2px solid white;
+    padding-left: 5px;
+    margin-top: 12px;
+}
+tr:hover td.coutabo:after {
+    content: "+";
+    position: absolute;
+    font-size: 1.5em;
+    color: #ffffff;
+    margin-left: 1vmax;
+    background: #acacac6e;
+    border-radius: 2em;
+    padding: 0px 7px;
+    transform: scale(0.75);
+    margin-top: 2px;
+}
+tr:hover td.detail:after {
+    content: "=";
+    position: absolute;
+    font-size: 1.5em;
+    color: #ffffff;
+    margin-left: 0.5vmax;
+    background: #acacac6e;
+    border-radius: 2em;
+    padding: 0px 7px;
+    transform: scale(0.75);
+    margin-top: -9px;
+}
+tr.tempo:hover td.detail:after{
+    margin-top: -36px;
+
+}
+canvas#coutMensuelChart {
+    max-height: 30vh;
+}
+/* Ajouter ces styles */
+#disclaimerToggle {
+    transition: transform 0.3s ease;
+}
+
+#disclaimerToggle:hover {
+    transform: scale(1.1);
+}
+
+#disclaimer {
+    max-width: 400px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.dark #disclaimer {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Ajouter ces styles */
+#abonnement option:disabled {
+    color: rgb(156 163 175);
+    font-style: italic;
+}
+
+.dark #abonnement option:disabled {
+    color: rgb(75 85 99);
+}
+
+/* Ajouter ces styles */
+.tempo-percentage {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    width: 3rem;
+    padding: 0 0.25rem;
+    font-size: 0.875rem;
+}
+
+.tempo-percentage:focus {
+    outline: none;
+    border-bottom-color: rgb(59 130 246);
+}
+
+.dark .tempo-percentage {
+    color: rgb(229 231 235);
+    border-bottom-color: rgb(75 85 99);
+}
+
+.dark .tempo-percentage:focus {
+    border-bottom-color: rgb(96 165 250);
+}
+td.fournisseur {
+    text-indent: 12px;
+}
+tr.mycontract,tr.cheapest{
+    position: relative;
+    box-shadow: inset 0 0 10px 3px #67c8e8;
+}
+tr.cheapest{
+    box-shadow: inset 0 0 0px 1px #a2e867;
+}
+tr.mycontract:after {
+    content: "Votre Offre";
+    background: #67c8e8e4;
+    display: block;
+    color: black;
+    font-size: 0.65em;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    bottom: 0;
+    height: 22px;
+    transform-origin: top left;
+    width: 110px;
+    padding: 0 10px;
+    line-height: 1.75;
+    text-align: center;
+}
+#themeswitch{
+    margin-right: -46px;
+    transition: margin-right 0.3s ease;
+}
+#themeswitch:hover{
+    margin-right: 0px;
+    transition: margin-right 0.3s ease;
+}
+#themeswitch .hello {
+    position: absolute;
+    left: -15px;
+    top: 40%;
+    background: white;
+    padding: 5px;
+    border-radius: 5px 0 0 5px;
+    cursor: pointer;
+}
+#themeswitch:hover .hello{
+    transform: rotate(180deg);
+    border-radius:0 5px 5px 0;
+}
+.dark #themeswitch .hello{
+    background: rgb(31 41 55);
+}
+/* Ajouter des transitions douces */
+.dark-mode-transition {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Améliorer les contrastes en mode sombre */
+.dark .text-gray-700 {
+    color: rgb(209 213 219);
+}
+
+/* Animation pour les notifications */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+} 
+/* tooltip*/
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+.tooltip-container .tooltip-text {
+    visibility: hidden;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    z-index: 10;
+    margin-bottom: 0.25rem;
+    --tw-translate-x: -50%;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+    white-space: nowrap;
+    border-radius: 0.25rem;
+    --tw-bg-opacity: 1;
+    background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    --tw-text-opacity: 1;
+    color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.tooltip-container .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: 50%;
+    --tw-translate-y: -50%;
+    transform: rotate(-90deg);
+    border-width: 8px;
+    border-color: transparent;
+    border-left-color: #4B5563;
+}
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Style spécifique pour les tooltips Tempo */
+tr.tempo td.detail .tooltip-text {
+    height: 130px;
+    bottom: auto;
+    left: 100%;
+    transform: none;
+    margin-bottom: 0;
+    margin-left: 8px;
+}
+
+tr.tempo td.detail .tooltip-text {
+    top: 50%;
+    right: auto;
+    left: -16px;
+    transform: translateY(-50%);
+    border-right-color: #4B5563;
+    border-left-color: transparent;
+}
+tr.tempo td.detail .tooltip-container .tooltip-text::after {
+    top: 45%;
+    right: 100%;
+    transform: rotate(-180deg);
+}
+
+/* Styles pour le bouton d'importation */
+label[for="importCoefficients"] {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #3B82F6;
+    color: white;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 500;
+}
+
+label[for="importCoefficients"]:hover {
+    background-color: #2563EB;
+}
+
+.dark label[for="importCoefficients"] {
+    background-color: #4B5563;
+}
+
+.dark label[for="importCoefficients"]:hover {
+    background-color: #6B7280;
+}
+
+#importStatus {
+    font-size: 0.875rem;
+    margin-left: 1rem;
+}
+
+/* Styles pour la transition entre tableau et statistiques */
+#resultatContainer, #analysesContainer {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#resultatContainer.hidden, #analysesContainer.hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+
+/* Animation pour le changement de vue */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
